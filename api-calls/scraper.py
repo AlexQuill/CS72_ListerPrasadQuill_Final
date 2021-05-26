@@ -13,6 +13,7 @@ load_dotenv()
 
 def clean(string):
     string = string.replace(u'\xa0', u' ')
+    string = string.replace("\"", "")
     return string
 
 
@@ -116,17 +117,33 @@ def get_lyrics_by_song_id(song_id):
 
     soup = BeautifulSoup(requests.get(page_url).content, 'lxml')
 
+    t_list = []
     for tag in soup.select('div[class^="Lyrics__Container"], .song_body-lyrics p'):
         t = tag.get_text(strip=True, separator='\n')
         if t:
-            return t
-        return None
+            t_list.append(t)
 
-    return None
+    return "\n".join(t_list)
 
 
-song_objects, lyrics = get_artist_hits("2pac", 2)
-for words in lyrics:
-    for line in words.split('\n')[:10]:
-        print(clean(line).replace("\"", ""))
-    print('\n')
+def write_lyrics_to_text(filename, lyrics):
+
+    outF = open(filename, "w")
+
+    for words in lyrics:
+        # print first ten lines to console
+        for line in words.split('\n')[:10]:
+            print(clean(line))
+
+        # write full song to file
+        for line in words.split("\\n"):
+            outF.write(line + "\n")
+
+        print("\n")
+        outF.write("\n")
+
+    outF.close()
+
+
+song_objects, lyrics = get_artist_hits("Adele", 2)
+write_lyrics_to_text("Lyrics/Adele.txt", lyrics)
